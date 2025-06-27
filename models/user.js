@@ -44,7 +44,7 @@ class User {
     const updatedCart = { items: updatedCartItems };
     const db = getDb();
     return db
-      .collection('users')
+      .collection("users")
       .updateOne(
         { _id: new ObjectId(this._id) },
         { $set: { cart: updatedCart } }
@@ -72,12 +72,73 @@ class User {
             ...p,
             quantity: this.cart.items.find((i) => {
               return i.productId.toString() === p._id.toString();
-            }).quantity
+            }).quantity,
           };
         });
       })
       .catch((err) => {
         console.error("Error fetching cart:", err);
+      });
+  }
+
+  deleteItemFromCart(productId) {
+    const updatedCartItems = this.cart.items.filter((item) => {
+      return item.productId.toString() !== productId.toString();
+    });
+    const updatedCart = { items: updatedCartItems };
+    const db = getDb();
+    return db
+      .collection("users")
+      .updateOne(
+        { _id: new ObjectId(this._id) },
+        { $set: { cart: updatedCart } }
+      )
+      .then((result) => {
+        console.log("Item deleted from cart");
+      })
+      .catch((err) => {
+        console.error("Error deleting item from cart:", err);
+      });
+  }
+
+  addOrder() {
+    const db = getDb();
+    return this.getCart()
+      .then((products) => {
+        const order = {
+          items: products,
+          user: {
+            _id: new ObjectId(this._id),
+            name: this.name,
+            email: this.email,
+          }
+        };
+        return db
+          .collection("orders")
+          .insertOne(order)
+      })
+      .then((result) => {
+        this.cart = { items: [] };
+        return db
+          .collection("users")
+          .updateOne(
+            { _id: new ObjectId(this._id) },
+            { $set: { cart: { items: [] } } }
+          );
+      });
+  }
+
+  getOrders() {
+    const db = getDb();
+    return db
+      .collection("orders")
+      .find({ "user._id": new ObjectId(this._id) })
+      .toArray()
+      .then((orders) => {
+        return orders;
+      })
+      .catch((err) => {
+        console.error("Error fetching orders:", err);
       });
   }
 
