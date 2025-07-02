@@ -22,6 +22,13 @@ const store = new MongoDBStore({
 
 const csrfProtection = csrf();
 
+app.use((req, res, next) => {
+  res.locals.stripePublicKey = process.env.STRIPE_PUBLIC_KEY;
+  res.locals.apiKey = process.env.API_KEY;
+  next();
+});
+
+
 // ✔️ Session middleware
 app.use(
   session({
@@ -118,6 +125,7 @@ app.use(errorController.get404);
 
 // ✔️ Error-handling middleware
 app.use((error, req, res, next) => {
+  console.log(error);
   res.status(500).render('500', {
     pageTitle: 'Error!',
     path: '/500',
