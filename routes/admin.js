@@ -23,7 +23,6 @@ router.post(
       .isLength({ min: 3 })
       .trim()
       .withMessage("Please enter a valid title (at least 3 characters)."),
-    body("imageUrl").isURL().withMessage("Please enter a valid image URL."),
     body("price")
       .isFloat({ gt: 0 })
       .withMessage("Please enter a valid price (greater than 0)."),
